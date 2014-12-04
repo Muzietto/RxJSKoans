@@ -9,7 +9,7 @@ module('Lesson 2 - Composable Observations');
  
 test('ComposableAddition', function() {
     var received = 0;
-    var numbers = [10, 100, _______];
+    var numbers = [10, 100, 1000];
     numbers
         .toObservable()
         .sum()
@@ -27,7 +27,7 @@ test('ComposableAddition', function() {
         .where(function(n) { return n % 2 === 0; })
         .doAction(function(n) { b += n.toString(); })
         .subscribe();
-    equals(a, _______);
+    equals(a, '123456');
     equals(b, '246');
 });
  
@@ -36,7 +36,7 @@ test('WeWroteThis', function() {
     var names = ['Bart', 'Wes', 'Erik', 'Matthew', 'Brian'];
     names
         .toObservable()
-        .where(function(n) { return n.length <= _______; })
+        .where(function(n) { return n.length <= 4; })
         .subscribe(function(x) { received.push(x); });
     equals(received.toString(), 'Bart,Wes,Erik');    
 });
