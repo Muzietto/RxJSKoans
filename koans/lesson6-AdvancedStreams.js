@@ -4,29 +4,31 @@ test('Merging', function() {
     var easy = [],
         you = [1,2,3].toObservable(),
         me = ['A','B','C'].toObservable();
+
     you
         .merge(me)
         .subscribe(function(a) { easy.push(a); });
 
-    // equals(easy === '1 A 2 B 3 C ' || easy === '1 2 3 A B C ', _______);
+    equals([123], easy.toArray());
+    // equals(easy === '1 A 2 B 3 C ' || easy === '1 2 3 A B C ', easy);
     
     // Actually, this is not so easy! The result could be any arbitrary
     // riffle of the original two streams.  
 
     riffles([1, 2, 3].toEnumerable(), ['A', 'B', 'C'].toEnumerable())
         .forEach(function(riffle) {
-            console.log("riffle: ", riffle.toArray());
+            //console.log("riffle: ", riffle.toArray());
         });
     
-    console.log("easy: ", easy);
-
+    //console.log("easy: ", easy);
+/*
     equals(
         riffles([1, 2, 3].toEnumerable(), ['A', 'B', 'C'].toEnumerable())
         .select(function (riffle) {return riffle.toArray();})
         ._______(easy, arrayComparer),
         true);
 });
-
+*/
 // A function that compares arrays for equality given an optional
 // elementComparer. Be aware that this is not sufficiently flexible 
 // to work on arrays of arbitrary nesting.

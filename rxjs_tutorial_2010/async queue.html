@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>async queue</title>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'lucida grande', lucida, helvetica, arial;
+      }
+      #doc {
+        width: 600px;
+        margin: 0 auto;
+      }
+      pre {
+        font-family: 'courier new', courier, monospace;
+        padding: 20px;
+        font-size: 16px;
+      }
+      #content {
+        font-size: 18px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        -moz-border-radius: 10px;
+      }
+    </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="rx.js"></script>
+    <script type="text/javascript" src="rx.jquery.js"></script>
+    <script type="text/javascript">
+      Array.prototype.toObservable = function(scheduler) {
+        return Rx.Observable.FromArray(this, scheduler);
+      };
+
+      var delayedScheduler = Rx.DelayedScheduler = function(delay) {
+       return new Rx.Scheduler(
+        function(action) {
+          var id = window.setTimeout(action, delay);
+          return Rx.Disposable.Create(function() { window.clearTimeout(id); });
+        },
+        function(action, dueTime) {
+          var id = window.setTimeout(action, dueTime);
+          return Rx.Disposable.Create(function() { window.clearTimeout(id); });
+        },
+        function() {
+          return new Date().getTime();
+        });
+      };
+
+      $(document).ready(function() {
+        var url = "http://search.twitter.com/search.json?q=4sq.com&rpp=100";
+        var customScheduler = new Rx.DelayedScheduler(5000);
+
+        $.ajaxAsObservable({ url: url, type: "get", dataType: "jsonp" })
+          .SelectMany(
+            function(d) {
+              return d.data.results.toObservable(customScheduler);
+            })
+          .Repeat()
+          .Subscribe(
+            function(result) {
+              $("<p/>")
+                .fadeTo(1000, 1.0)
+                .html(result.text)
+                .fadeTo(1000, 0.1)
+                .appendTo("#content");
+            });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="doc">
+      <p>Latest twitter search mentioning <b>4sq.com</b>:</p>
+      <div id="content"></div>
+    </div>
+  </body>
+</html>

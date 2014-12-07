@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+  <head>
+    <title>Drag example</title>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="http://jeffrey.reactiveextensions.net/rx.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      jQuery.fn.ToObservable = function(eventType, eventData) {
+              return Rx.Observable.FromJQueryEvent(this, eventType, eventData);
+      }
+
+      function drag(dragTarget) {
+        var mouseUp = dragTarget
+          .ToObservable("mouseup");
+
+        var mouseMove = dragTarget
+          .ToObservable("mousemove");
+
+        var mouseDown = dragTarget
+          .ToObservable("mousedown")
+          .Select(function(event) {
+            return { 
+              left : event.clientX - dragTarget.offset().left,
+              top  : event.clientY - dragTarget.offset().top }; 
+            });
+
+        return mouseDown
+          .SelectMany(function(imageOffset) {
+            return mouseMove
+              .Do(function(event) { event.preventDefault(); })
+              .Select(function(pos) {
+                return { 
+                  target : dragTarget,
+                  left   : pos.clientX - imageOffset.left,
+                  top    : pos.clientY - imageOffset.top }; 
+                })
+              .TakeUntil(mouseUp); });
+      }
+
+      $(document).ready(function() {
+        var observer = Rx.Observer.Create(
+          function(pos) {
+            pos.target.css("left", pos.left);
+            pos.target.css("top",  pos.top);
+          });
+
+        drag($("#dragTarget1")).Subscribe(observer);
+        drag($("#dragTarget2")).Subscribe(observer);
+      });
+    </script>
+
+  </head>
+  <body>
+    <div id="dragTarget1"
+      style="background-color: #000000; border: 1px solid #666666;
+        color: #ffffff; padding: 10px; position: absolute;
+        font-family: sans-serif; cursor: move">
+      Drag Me!
+    </div>
+    <div id="dragTarget2"
+      style="background-color: #0000FF; border: 1px solid #666666;
+        color: #ffffff; padding: 10px; position: absolute;
+        font-family: sans-serif; cursor: move; left: 150px">
+      Drag Me Too!
+    </div>
+  </body>
+</html>

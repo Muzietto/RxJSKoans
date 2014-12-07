@@ -46,7 +46,7 @@ test('ConvertingEvents', function() {
     var names = ['wE', 'hOpE', 'yOU', 'aRe', 'eNJoyIng', 'tHiS' ];
     names
         .toObservable()
-        .select(function(x) { return x._______; })
+        .select(function(x) { return x.toLowerCase(); })
         .subscribe(function(x) { received += x + ' '; });
     equals(received, 'we hope you are enjoying this ');
 });
@@ -57,7 +57,7 @@ test('CreatingAMoreRelevantEventStream', function() {
         windowTopX = 50,
         relativemouse = mouseXMovements
             .toObservable()
-            .select(function(x) { return x - _______; });
+            .select(function(x) { return x - windowTopX; });
     
     relativemouse.subscribe(function(x) { received += x + ', '; });
     equals(received, '50, 150, 100, ');
@@ -70,13 +70,13 @@ test('CheckingEverything', function() {
         .toObservable()
         .all(function(x) { return x % 2 === 0; })
         .subscribe(function(x) { received = x; });
-    equals(received, _______);
+    equals(received, true);
 });
  
 test('CompositionMeansTheSumIsGreaterThanTheParts', function() {
     var numbers = Rx.Observable.range(1, 10);
     numbers
-        .where(function(x) { return x > _______; })
+        .where(function(x) { return x > 8; })
         .sum()
         .subscribe(function(x) { equals(19, x); });
  });

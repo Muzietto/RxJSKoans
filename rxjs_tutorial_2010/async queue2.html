@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>async queue2</title>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'lucida grande', lucida, helvetica, arial;
+      }
+      #doc {
+        width: 600px;
+        margin: 0 auto;
+      }
+      pre {
+        font-family: 'courier new', courier, monospace;
+        padding: 20px;
+        font-size: 16px;
+      }
+      #content {
+        font-size: 18px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        -moz-border-radius: 10px;
+      }
+    </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="rx.js"></script>
+    <script type="text/javascript" src="rx.jquery.js"></script>
+    <script type="text/javascript">
+      function updateUI() {
+        return $.getJSONAsObservable("http://search.twitter.com/search.json?q=4sq.com&rpp=1")
+          .Select(function(d) { return d.data.results[0].text; })
+          .Do(
+            function(result) {
+              $("#content").html(result);
+            });
+      }
+
+      function countdownUI() {
+        return Rx.Observable.GenerateWithTime(
+          90,
+          function(x) { return x >= 0; },
+          function(x) { return x; },
+          function(x) { return 1000; },
+          function(x) { return x - 1; })
+          .Do(function(x) { $("#countdown").html(x); });
+      }
+
+      $(document).ready(function() {
+        Rx.Observable.Defer(function() { return updateUI(); }).Concat(countdownUI()).Repeat().Subscribe();
+      });
+
+    </script>
+
+  </head>
+  <body>
+    <div id="doc">
+      <div>Time until refresh: <span id="countdown">90</span> seconds</div>
+      <p>Latest twitter search mentioning <b>4sq.com</b>:</p>
+      <div id="content"></div>
+    </div>
+  </body>
+</html>
