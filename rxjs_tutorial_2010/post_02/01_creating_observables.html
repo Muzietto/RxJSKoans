@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="../../lib/rx.all.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+      var observable1 = Rx.Observable.create(function(observer){
+        observer.onNext(3);
+        observer.onCompleted();
+        
+        return function(){ alert('callback1!'); }
+      });
+      
+      var myObserver = {
+        onNext : function(next){ console.log('Next: ' + next); },
+        onError: function(exc) { console.log('Error: ' + exc); },
+        onCompleted: function() { console.log('COMPLETED!'); }
+      }
+      
+//      var subscription1 = observable1.subscribe(myObserver);
+
+      var observable2 = Rx.Observable.create(function(observer){
+        try {
+          throw "Ouch! an exception...";
+        } catch (err) {
+          observer.onError("Got it " + err);
+          observer.onCompleted();
+          
+          return function(){ alert('Again calling back!!'); };
+        }
+      });
+      
+//      var subscription2 = observable2.subscribe(myObserver);
+      
+      var item = "Just one item";
+      var observable3 = Rx.Observable.return(item);
+      var subscription3 = observable3.subscribe(myObserver);
+  
+      var rangedObservable = Rx.Observable.range(0,10);
+      var rangedSubscription = rangedObservable.subscribe(myObserver);
+      
+      var generatedObservable = Rx.Observable.generate(
+        0,
+        function(x){ return x < 5;},
+        function(x){ return x + 1; },
+        function(x){ return 2 * x; }
+      );
+      var generatedSubscription = generatedObservable.subscribe(myObserver);
+      
+      var items = ["one","two","three"];
+      var arrayedObservable = Rx.Observable.fromArray(items);
+      var arrayedSubscription = arrayedObservable.subscribe(myObserver);
+      
+    $(document).ready(function(){  
+      var mainCanvas = $('#mainCanvas')[0];
+      var eventfulObservable = Rx.Observable.fromEvent(mainCanvas,'mousemove');
+      
+      var eventfulSubscription = eventfulObservable.subscribe(myObserver);
+      });
+      
+    </script>
+      
+
+  </head>
+  <body >  
+    <div id="mainCanvas" style="border: 1px solid green; width: 300px; height: 400px;"></div>
+  </body>
+</html>
