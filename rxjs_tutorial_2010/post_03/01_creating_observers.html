@@ -1,0 +1,125 @@
+<html>
+  <head>
+    <title>RxJs 2010 - post 3</title>
+    <link rel="stylesheet" href="../../lib/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/qunit.js"></script>
+
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="../../lib/rx.all.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+      QUnit.testStart = function(test) {
+          var module = test.module ? test.module : '';
+          console.log('#' + module + " " + test.name + ": started.");
+      };
+
+      QUnit.testDone = function(test) {
+          var module = test.module ? test.module : '';
+          console.log('#' + module + " " + test.name + ": done.");
+          console.log('####');
+      };
+    
+      asyncTest('Observer should observe onNext', function(){
+        var observable = Rx.Observable.return(0);
+        var observer = Rx.Observer.create(
+          function(next) {
+            equals(next, 0);
+            start();
+          },
+          function(err) { throw 'should not err! ' + err; },
+          function() { console.log('completing'); } // at completion
+        );
+          observable.subscribe(observer);
+      });
+      
+      asyncTest('Observer should observe onError', function(){
+        var observable = Rx.Observable.throw('bang!');
+        var observer = Rx.Observer.create(
+          function(next) { throw 'should not push!'; },
+          function(err) { 
+            equals(err, 'bang!');
+            start();
+          },
+          function() { throw 'should not complete!'; } // at completion
+        );
+        observable.subscribe(observer);
+      });
+      
+      asyncTest("Observer should observe onCompleted", function() {
+        var observable = Rx.Observable.empty();
+        var observer = Rx.Observer.create(
+          function(next) { throw 'should not push!'; },
+          function(err) { throw 'should not err!'; },
+          function() {
+              ok(true, "True when invoked on complete");
+              start();
+          });
+        observable.subscribe(observer);
+      });      
+      
+      asyncTest('Observer created on the fly should observe onNext', function(){
+        var observable = Rx.Observable.return(0);
+        observable.subscribe(
+          function(next) {
+            equals(next, 0);
+            start();
+          },
+          function(err) { throw 'should not err! ' + err; },
+          function() { console.log('completing'); } // at completion
+        );
+      });
+      
+      asyncTest('Observer created on the fly should observe onError', function(){
+        var observable = Rx.Observable.throw('bang!');
+        observable.subscribe(
+          function(next) { throw 'should not push!'; },
+          function(err) { 
+            equals(err, 'bang!');
+            start();
+          },
+          function() { throw 'should not complete!'; } // at completion
+        );
+      });
+      
+      asyncTest("Observer created on the fly should observe onCompleted", function() {
+        var observable = Rx.Observable.empty();
+        observable.subscribe(
+          function(next) { throw 'should not push!'; },
+          function(err) { throw 'should not err!'; },
+          function() {
+              ok(true, "True when invoked on complete");
+              start();
+          });
+      });
+      
+      asyncTest('dispose should unhook observer', function() {
+        var nextValue = 0;
+        var observable = Rx.Observable.fromArray([1,2,3]);
+        var subscription1 = observable.subscribe(
+          function(next) {
+            console.log('S1 -> ' + next);
+            nextValue = next;
+            this.dispose();
+          }
+        );
+        var subscription2 = observable.subscribe(
+          function(next) {
+            console.log('S2 -> ' + next);
+            equals(nextValue, 1);
+            start();
+          }
+        );
+      });
+      
+    </script>
+
+  </head>
+  <body >
+    <h1 id="qunit-header">Reactive Extensions for JavaScript: Post 3 - 2010</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-fixture">test markup, will be hidden</div>
+  </body>
+</html>

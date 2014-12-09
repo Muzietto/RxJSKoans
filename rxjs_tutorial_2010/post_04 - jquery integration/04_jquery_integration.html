@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>RxJs 2010 - post 3</title>
+
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="../../lib/rx.all.js" type="text/javascript"></script>
+    
+    <style>
+      p.highlight { background-color: yellow; }
+      
+    </style>
+
+    <script type="text/javascript">
+    jQuery.fn.toRxObservable = function(eventType, eventData) {
+      return Rx.Observable.fromEvent(this, eventType, eventData);
+    }
+
+    $(document).ready(function() {
+      Rx.Observable.fromEvent($('div, span'), 'click')
+        .subscribe(function(event) {
+          $('#baz').html('mouse at (' + event.pageX + '; ' + event.pageY + ')');
+        });
+        
+      $('div, span').toRxObservable('mouseenter mouseleave')
+        .subscribe(function(event) {
+          $('#baz').toggleClass('highlight');
+        });;
+    });
+    </script>
+
+  </head>
+  <body >
+    <div style="border:1px solid red">div1</div>
+    <span style="border:1px solid blue">spanno1</span>
+    <p id="baz" style="border:1px solid green;height:30px;"></p>
+  </body>
+</html>

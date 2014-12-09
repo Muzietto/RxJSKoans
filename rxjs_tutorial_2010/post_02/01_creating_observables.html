@@ -4,40 +4,41 @@
     <script src="../../lib/rx.all.js" type="text/javascript"></script>
 
     <script type="text/javascript">
-      var observable1 = Rx.Observable.create(function(observer){
-        observer.onNext(3);
-        observer.onCompleted();
-        
-        return function(){ alert('callback1!'); }
-      });
-      
-      var myObserver = {
+    
+      var consoleLoggingObserver = /*Rx.Observer.create(*/{
         onNext : function(next){ console.log('Next: ' + next); },
         onError: function(exc) { console.log('Error: ' + exc); },
         onCompleted: function() { console.log('COMPLETED!'); }
-      }
-      
-//      var subscription1 = observable1.subscribe(myObserver);
+      }/*)*/;
 
-      var observable2 = Rx.Observable.create(function(observer){
+      var plainBehavior = function(observer){
+        observer.onNext(3);
+        observer.onCompleted();
+        
+        return function(){ alert('callback after plain behavior!'); }
+      }
+      var plainBehavingObservable = Rx.Observable.create(plainBehavior);     
+      var plainBehavingSubscription = plainBehavingObservable.subscribe(consoleLoggingObserver);
+
+      var erroredBehavior = function(observer){
         try {
           throw "Ouch! an exception...";
         } catch (err) {
           observer.onError("Got it " + err);
           observer.onCompleted();
           
-          return function(){ alert('Again calling back!!'); };
+          return function(){ alert('calling back after errored behavior'); };
         }
-      });
-      
-//      var subscription2 = observable2.subscribe(myObserver);
-      
+      }
+      var erringObservable = Rx.Observable.create(erroredBehavior);
+      var erringSubscription = erringObservable.subscribe(consoleLoggingObserver);
+     
       var item = "Just one item";
-      var observable3 = Rx.Observable.return(item);
-      var subscription3 = observable3.subscribe(myObserver);
+      var itemReturningObservable = Rx.Observable.return(item);
+      var itemReturningSubscription = itemReturningObservable.subscribe(consoleLoggingObserver);
   
       var rangedObservable = Rx.Observable.range(0,10);
-      var rangedSubscription = rangedObservable.subscribe(myObserver);
+      var rangedSubscription = rangedObservable.subscribe(consoleLoggingObserver);
       
       var generatedObservable = Rx.Observable.generate(
         0,
@@ -45,17 +46,17 @@
         function(x){ return x + 1; },
         function(x){ return 2 * x; }
       );
-      var generatedSubscription = generatedObservable.subscribe(myObserver);
+      var generatedSubscription = generatedObservable.subscribe(consoleLoggingObserver);
       
       var items = ["one","two","three"];
       var arrayedObservable = Rx.Observable.fromArray(items);
-      var arrayedSubscription = arrayedObservable.subscribe(myObserver);
+      var arrayedSubscription = arrayedObservable.subscribe(consoleLoggingObserver);
       
-    $(document).ready(function(){  
+    $(document).ready(function(){
+    
       var mainCanvas = $('#mainCanvas')[0];
-      var eventfulObservable = Rx.Observable.fromEvent(mainCanvas,'mousemove');
-      
-      var eventfulSubscription = eventfulObservable.subscribe(myObserver);
+      var eventfulObservable = Rx.Observable.fromEvent(mainCanvas,'mousemove');      
+      var eventfulSubscription = eventfulObservable.subscribe(consoleLoggingObserver);
       });
       
     </script>
