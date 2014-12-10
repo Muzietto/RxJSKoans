@@ -10,19 +10,95 @@
       
     </style>
 
-    <script type="text/javascript">
-      var destLanguages = ["de", "es", "zh-CHT", "fr", "it", "ar", "ht", "tlh"];
-      var languagesObs = Rx.Observable.fromArray(destLanguages);
-      
-      var encodeds = 'grant_type=client_credentials&client_id=celermentetrasudandocragganmore&client_secret=iIoB7v5WB5x2OY3VRAOd2zIyw6ja%2B40a4bKIRE9%2BBL4%3D&scope=http%3A%2F%2Fapi.microsofttranslator.com';
-      var contentType = 'application/x-www-form-urlencoded';
-      
-    </script>
-
   </head>
   <body >
     <input type="text" id="TextToTranslate" size="80" />
 
     <div id="output"></div>
+    <script type="text/javascript">
+    
+      (function($) {
+        var destLanguages = ["de", "es", "zh-CHT", "fr", "en", "ar", "ht", "tlh"];
+        var languagesObs = Rx.Observable.fromArray(destLanguages);
+        
+        var grant_type = 'client_credentials';
+        var client_id = 'celermentetrasudandocragganmore';
+        var client_secret = 'iIoB7v5WB5x2OY3VRAOd2zIyw6ja+40a4bKIRE9+BL4=';
+        var scope = 'http://api.microsofttranslator.com';
+        
+        var encodeds = 'grant_type=client_credentials&client_id=celermentetrasudandocragganmore&client_secret=iIoB7v5WB5x2OY3VRAOd2zIyw6ja%2B40a4bKIRE9%2BBL4%3D&scope=http%3A%2F%2Fapi.microsofttranslator.com';
+        var contentType = 'application/x-www-form-urlencoded';
+        var requestUrl = 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13';
+        var requestMethod = 'POST';
+        
+        var g_token = 'http%3a%2f%2fschemas.xmlsoap.org%2fws%2f2005%2f05%2fidentity%2fclaims%2fnameidentifier=celermentetrasudandocragganmore&http%3a%2f%2fschemas.microsoft.com%2faccesscontrolservice%2f2010%2f07%2fclaims%2fidentityprovider=https%3a%2f%2fdatamarket.accesscontrol.windows.net%2f&Audience=http%3a%2f%2fapi.microsofttranslator.com&ExpiresOn=1418195543&Issuer=https%3a%2f%2fdatamarket.accesscontrol.windows.net%2f&HMACSHA256=VXTBUYrabQrYond0NrOafmHBvPy%2fJzrlsyPnpG%2b1Xq4%3d';
+        
+        function postToToken() { // won't work...
+          $.ajax({
+            url: requestUrl,
+            type: requestMethod,
+            dataType: 'json',
+            data: {
+              grant_type: grant_type,
+              client_id: client_id,
+              client_secret: client_secret,
+              scope: scope
+            }
+          }).done(function(data) {
+            debugger;
+            token = data.access_token;
+            alert(token);
+          });
+        }
+        
+        var translate = function (text, to) {
+          var p = { 
+            text: text,
+            to: to,
+            from: 'it',
+            appId: 'Bearer ' + g_token
+          };
+          
+          var promise = $.ajax({
+              url: 'http://api.microsofttranslator.com/V2/Ajax.svc/Translate',
+              data: p,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'oncomplete',
+          }).promise();
+          
+          return Rx.Observable.fromPromise(promise);
+        };
+        
+        var languagesObs = Rx.Observable.fromArray(destLanguages);
+        
+        var textInputDetected = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
+          .throttle(500) // wait to see if they're still typing
+          .do(function(){ $('#output').empty(); }) // side effect
+          .select(function(){ return $('#TextToTranslate').val(); }).distinctUntilChanged()
+          .flatMap(function(text){ 
+            return languagesObs
+              .select(function(lang){ 
+                return {source: text, dest: lang}; // will be fed to next flatMap 
+              }) 
+          })
+          .flatMap(function(sourceDest){
+            return translate(sourceDest.source, sourceDest.dest) // observable from ajax promise
+              .select(function(result){ 
+                return { dest: sourceDest, translation: result }; // pushed to subscribers 
+              });
+          });
+          
+        textInputDetected.subscribe(
+          function(x){
+            $('#output').append(x.dest.dest + ' : ' + x.translation + '<br/>');
+          },
+          function(err){
+            $('#output').append(err + '<br/>');
+          });  
+          
+      })(jQuery);
+      
+    </script>
   </body>
 </html>
