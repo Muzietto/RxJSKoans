@@ -15,11 +15,12 @@
   <body >
     <input type="text" id="TextToTranslate" size="80" />
 
+    <div id="language" style="font-weight:bold;"></div>
     <div id="output"></div>
     <script type="text/javascript">
     
      (function($) {
-        var destLanguages = ["de", "es", "zh-CHT", "fr", "en", "ar", "ht", "tlh"];
+        var destLanguages = ["de", "es", "zh-CHT", "fr", "en", "ar", "pt", "pt-BR", "ht", "tlh"];
         var languagesObs = Rx.Observable.fromArray(destLanguages);
         
         var requestUrl = 'https://www.faustinelli.org/getToken.php';
@@ -57,9 +58,27 @@
           return Rx.Observable.fromPromise(promise);
         };
         
+        var detect = function (text) {
+          var p = { 
+            text: text,
+            appId: 'Bearer ' + g_token
+          };
+          
+          var promise = $.ajax({
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/Detect',
+              data: p,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'oncomplete',
+          }).promise();
+          
+          return Rx.Observable.fromPromise(promise);
+        };
+
         var languagesObs = Rx.Observable.fromArray(destLanguages);
         
-        var textInputDetected = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
+        // observable about text translations
+        var textInputToTranslate = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
           .throttle(500) // wait to see if they're still typing
           .do(function(){ $('#output').empty(); }) // side effect
           .select(function(){ return $('#TextToTranslate').val(); }).distinctUntilChanged()
@@ -76,12 +95,29 @@
               });
           });
           
-        textInputDetected.subscribe(
+        textInputToTranslate.subscribe(
           function(x){
             $('#output').append(x.dest.dest + ' : ' + x.translation + '<br/>');
           },
           function(err){
             $('#output').append(err + '<br/>');
+          });
+
+        // observable about language detected
+        var textInputToDetect = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
+          .throttle(500) // wait to see if they're still typing
+          .do(function(){ $('#language').empty(); }) // side effect
+          .select(function(){ return $('#TextToTranslate').val(); }).distinctUntilChanged()
+          .flatMap(function(text){
+            return detect(text) // observable from ajax promise pushed to subscribers
+          });
+
+        textInputToDetect.subscribe(
+          function(lang){
+            $('#language').append('Language detected: ' + lang + '<br/>');
+          },
+          function(err){
+            $('#language').append(err + '<br/>');
           });
 
         getToken();
