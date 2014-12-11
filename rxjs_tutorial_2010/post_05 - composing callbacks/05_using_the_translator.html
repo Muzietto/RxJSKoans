@@ -3,8 +3,9 @@
     <title>RxJs 2010 - post 3</title>
     <!-- http://www.thinqlinq.com/Post.aspx/Title/Reactive-Translator-for-RxJs -->
 
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="../../lib/rx.all.js" type="text/javascript"></script>
+   <!-- use window.location.protocol -->
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="lib/rx.all.js" type="text/javascript"></script>
     
     <style>
       
@@ -17,37 +18,23 @@
     <div id="output"></div>
     <script type="text/javascript">
     
-      (function($) {
+     (function($) {
         var destLanguages = ["de", "es", "zh-CHT", "fr", "en", "ar", "ht", "tlh"];
         var languagesObs = Rx.Observable.fromArray(destLanguages);
         
-        var grant_type = 'client_credentials';
-        var client_id = 'celermentetrasudandocragganmore';
-        var client_secret = 'iIoB7v5WB5x2OY3VRAOd2zIyw6ja+40a4bKIRE9+BL4=';
-        var scope = 'http://api.microsofttranslator.com';
+        var requestUrl = 'https://www.faustinelli.org/getToken.php';
+        var requestMethod = 'GET';
         
-        var encodeds = 'grant_type=client_credentials&client_id=celermentetrasudandocragganmore&client_secret=iIoB7v5WB5x2OY3VRAOd2zIyw6ja%2B40a4bKIRE9%2BBL4%3D&scope=http%3A%2F%2Fapi.microsofttranslator.com';
-        var contentType = 'application/x-www-form-urlencoded';
-        var requestUrl = 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13';
-        var requestMethod = 'POST';
+        var g_token = '';
         
-        var g_token = 'http%3a%2f%2fschemas.xmlsoap.org%2fws%2f2005%2f05%2fidentity%2fclaims%2fnameidentifier=celermentetrasudandocragganmore&http%3a%2f%2fschemas.microsoft.com%2faccesscontrolservice%2f2010%2f07%2fclaims%2fidentityprovider=https%3a%2f%2fdatamarket.accesscontrol.windows.net%2f&Audience=http%3a%2f%2fapi.microsofttranslator.com&ExpiresOn=1418195543&Issuer=https%3a%2f%2fdatamarket.accesscontrol.windows.net%2f&HMACSHA256=VXTBUYrabQrYond0NrOafmHBvPy%2fJzrlsyPnpG%2b1Xq4%3d';
-        
-        function postToToken() { // won't work...
+        function getToken() { 
           $.ajax({
             url: requestUrl,
             type: requestMethod,
             dataType: 'json',
-            data: {
-              grant_type: grant_type,
-              client_id: client_id,
-              client_secret: client_secret,
-              scope: scope
-            }
+            data: {}
           }).done(function(data) {
-            debugger;
-            token = data.access_token;
-            alert(token);
+            g_token = data.access_token;
           });
         }
         
@@ -60,7 +47,7 @@
           };
           
           var promise = $.ajax({
-              url: 'http://api.microsofttranslator.com/V2/Ajax.svc/Translate',
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/Translate',
               data: p,
               type: 'GET',
               dataType: 'jsonp',
@@ -95,7 +82,11 @@
           },
           function(err){
             $('#output').append(err + '<br/>');
-          });  
+          });
+
+        getToken();
+
+        setInterval(getToken,1000*60*9);
           
       })(jQuery);
       
