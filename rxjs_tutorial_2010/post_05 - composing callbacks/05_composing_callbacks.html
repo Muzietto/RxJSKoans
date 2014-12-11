@@ -1,18 +1,88 @@
 <html>
   <head>
     <title>RxJs 2010 - post 3</title>
+    <!-- http://www.thinqlinq.com/Post.aspx/Title/Reactive-Translator-for-RxJs -->
 
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="../../lib/rx.all.js" type="text/javascript"></script>
+   <!-- use window.location.protocol -->
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="lib/rx.all.js" type="text/javascript"></script>
     
     <style>
       
     </style>
 
-    <script type="text/javascript">
-     </script>
-
   </head>
   <body >
+    <input type="text" id="TextToTranslate" size="80" />
+
+    <div id="language" style="font-weight:bold;"></div>
+    <div id="output"></div>
+    <script type="text/javascript">
+    
+     (function($) {
+        
+        var requestUrl = 'https://www.faustinelli.org/getToken.php';
+        var requestMethod = 'GET';
+        
+        var g_token = '';
+        
+        function getToken() { 
+          $.ajax({
+            url: requestUrl,
+            type: requestMethod,
+            dataType: 'json',
+            data: {}
+          }).done(function(data) {
+            g_token = data.access_token;
+          });
+        }
+                
+        function detect(text) {
+          var subject = new Rx.AsyncSubject();
+          var p = { 
+            text: text,
+            appId: 'Bearer ' + g_token
+          };
+          
+          $.ajax({
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/Detect',
+              data: p,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'oncomplete',
+              success: function(data) {
+                subject.onNext(data);
+                subject.onCompleted();
+              },
+              error: subject.onError
+          });
+          
+          return subject.asObservable();
+        };
+
+        // observable about language detected
+        var textInputToDetect = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
+          .throttle(500) // wait to see if they're still typing
+          .do(function(){ $('#language').empty(); }) // side effect
+          .select(function(){ return $('#TextToTranslate').val(); }).distinctUntilChanged()
+          .flatMap(function(text){
+            return detect(text) // observable from ajax promise pushed to subscribers
+          });
+
+        textInputToDetect.subscribe(
+          function(lang){
+            $('#language').append('Language detected: ' + lang + '<br/>');
+          },
+          function(err){
+            $('#language').append(err + '<br/>');
+          });
+
+        getToken();
+
+        setInterval(getToken,1000*60*9);
+          
+      })(jQuery);
+      
+    </script>
   </body>
 </html>
