@@ -6,6 +6,7 @@
    <!-- use window.location.protocol -->
     <script src="https://code.jquery.com/jquery-latest.js"></script>
     <script src="lib/rx.all.js" type="text/javascript"></script>
+    <script src="lib/json2.js" type="text/javascript"></script>
     
     <style>
       
@@ -32,8 +33,8 @@
         
         var g_token = '';
         
-        function getToken() { 
-          $.ajax({
+        function getPromiseOfToken() { 
+          var promise = $.ajax({
             url: requestUrl,
             type: requestMethod,
             dataType: 'json',
@@ -41,16 +42,17 @@
           }).done(function(data) {
             g_token = data.access_token;
           });
+          return promise;
         }
 
-        function languages() {
+        function getLanguages() {
           var subject = new Rx.AsyncSubject();
           var payload = { 
             appId: 'Bearer ' + g_token
           };
-          
+
           $.ajax({
-              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/getLanguages',
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguagesForTranslate',
               data: payload,
               type: 'GET',
               dataType: 'jsonp',
@@ -61,37 +63,62 @@
               },
               error: subject.onError
           });
-          
+
           return subject.asObservable();
         };
 
-        getToken();
-        setInterval(getToken,1000*60*9);
-        
+        function getLanguageNames(languageCodes) {
+          var subject = new Rx.AsyncSubject();
+          var payload = {
+            appId: 'Bearer ' + g_token,
+            locale: 'it',
+            languageCodes: languageCodes
+          };
+
+          $.ajax({
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguageNames',
+              data: payload,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'oncomplete',
+              success: function(data) {
+                subject.onNext(data);
+                subject.onCompleted();
+              },
+              error: subject.onError
+          });
+
+          return subject.asObservable();
+        };
+
+        var start = getPromiseOfToken();
+        setInterval(getPromiseOfToken,1000*60*9);
+
         $.fn.toObservable = function(eventType) {
           return Rx.Observable.fromEvent(this,eventType);
         }
-        
+
+        Array.prototype.toObservable = function() {
+          return Rx.Observable.fromArray(this);
+        }
+
         $(document).ready(function(){
-          $('#translateButton')
-            .toObservable('click') // observable.subscribe(observer)
-            .subscribe(function(event){
-            
-              var textToTranslate = $('#textToTranslate').val();
-              var translator = detect(textToTranslate)
-                .do(function(detectedLang){
-                  $("#detectedLang").html("Detected: " + detectedLang);
-                })
-                .flatMap(function(detectedLang){
-                  return translate(textToTranslate,detectedLang,'nl');
-                });
-                
-                translator.subscribe(function(translatedText){
-                  $('#translatedText').html(translatedText);
-                });
-            })
+          start.then(function(){
+            getLanguages().subscribe(
+              function(languageCodes){ // onNext
+                getLanguageNames(JSON.stringify(languageCodes)).subscribe(
+                  function(languageNames){ // onNext
+                    debugger;
+                    alert(languageNames);
+                  },
+                  alert // onError
+                );
+              },
+              alert // onError
+            );
+          });
         });
-        
+
       })(jQuery);
       
     </script>
