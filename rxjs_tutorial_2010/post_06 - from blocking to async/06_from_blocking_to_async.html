@@ -14,19 +14,16 @@
   </head>
   <body >
    <div id="horizon" style="background-color: #C0C0C0;width: 400px;margin:0 auto;padding: 12px;">  
-    <!--
-    <p>Enter the phrase to translate, in whatever language</p>
-    <input type="text" id="textToTranslate" size="40" />
-    <input type="button" id="translateButton" value="Translate!" />
-    <br/>
-
-    <div id="detectedLang" style="font-weight:bold;margin:10px;"></div>
-    <div id="translatedText"></div> -->
     <div id="languages"></div>
    </div>
 
     <script type="text/javascript">
-     (function($) {        
+     (function($) {
+
+        Array.prototype.toObservable = function() {
+          return Rx.Observable.fromArray(this);
+        };
+
         var requestUrl = 'https://www.faustinelli.org/getToken.php';
         var requestMethod = 'GET';
         
@@ -44,68 +41,72 @@
           return promise;
         }
 
-        function getLanguages() {
+        function getLanguageCodes() {
           var subject = new Rx.AsyncSubject();
           var payload = { 
             appId: 'Bearer ' + g_token
           };
 
           $.ajax({
-              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguagesForTranslate',
-              data: payload,
-              type: 'GET',
-              dataType: 'jsonp',
-              jsonp: 'oncomplete',
-              success: function(data) {
-                subject.onNext(data);
-                subject.onCompleted();
-              },
-              error: subject.onError
+            url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguagesForTranslate',
+            data: payload,
+            type: 'GET',
+            dataType: 'jsonp',
+            jsonp: 'oncomplete',
+            success: function(data) {
+              subject.onNext(data);
+              subject.onCompleted();
+            },
+            error: subject.onError
           });
 
           return subject.asObservable();
         };
 
-        function getLanguageNames(languageCodes) {
+        function getLanguageCodesAsObservableSequenceOfStrings() {
+            return Rx.Observable.start(function() {
+                return getLanguageCodes().toObservable();
+            }).mergeObservable();
+        }
+
+        function getLanguageNames(locale,languageCodes) {
           var subject = new Rx.AsyncSubject();
           var payload = {
             appId: 'Bearer ' + g_token,
-            locale: 'it',
+            locale: locale,
             languageCodes: languageCodes
           };
 
           $.ajax({
-              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguageNames',
-              data: payload,
-              type: 'GET',
-              dataType: 'jsonp',
-              jsonp: 'oncomplete',
-              success: function(data) {
-                subject.onNext(data);
-                subject.onCompleted();
-              },
-              error: subject.onError
+            url: 'https://api.microsofttranslator.com/V2/Ajax.svc/GetLanguageNames',
+            data: payload,
+            type: 'GET',
+            dataType: 'jsonp',
+            jsonp: 'oncomplete',
+            success: function(data) {
+              subject.onNext(data);
+              subject.onCompleted();
+            },
+            error: subject.onError
           });
 
           return subject.asObservable();
         };
 
+        function getLanguageNamesAsObservableSequenceOfStrings(locale) {
+          return Rx.Observable.start(function() {
+              return getLanguageNames(locale).toObservable();
+          }).mergeObservable();
+        }
+
         var start = getPromiseOfToken();
         setInterval(getPromiseOfToken,1000*60*9);
 
-        $.fn.toObservable = function(eventType) {
-          return Rx.Observable.fromEvent(this,eventType);
-        }
-
-        Array.prototype.toObservable = function() {
-          return Rx.Observable.fromArray(this);
-        }
-
         $(document).ready(function(){
           start.then(function(){
-            getLanguages().subscribe(
+            getLanguageCodes().subscribe(
               function(languageCodes){ // onNext
-                getLanguageNames(JSON.stringify(languageCodes)).subscribe(
+                getLanguageNames('nl',JSON.stringify(languageCodes)).subscribe(
                   function(languageNames){ // onNext
                     var result = '<ul>';
                     languageNames.forEach(function(curLang){
