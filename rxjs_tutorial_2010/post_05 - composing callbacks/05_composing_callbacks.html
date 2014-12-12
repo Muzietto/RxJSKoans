@@ -13,10 +13,16 @@
 
   </head>
   <body >
-    <input type="text" id="TextToTranslate" size="80" />
+   <div id="horizon" style="background-color: #C0C0C0;width: 400px;margin:0 auto;padding: 12px;">  
+    <p>Enter the phrase to translate, in whatever language</p>
+    <input type="text" id="textToTranslate" size="40" />
+    <input type="button" id="translateButton" value="Translate!" />
+    <br/>
 
-    <div id="language" style="font-weight:bold;"></div>
-    <div id="output"></div>
+    <div id="detectedLang" style="font-weight:bold;margin:10px;"></div>
+    <div id="translatedText"></div>
+   </div>
+
     <script type="text/javascript">
     
      (function($) {
@@ -36,7 +42,7 @@
             g_token = data.access_token;
           });
         }
-                
+
         function detect(text) {
           var subject = new Rx.AsyncSubject();
           var p = { 
@@ -60,27 +66,58 @@
           return subject.asObservable();
         };
 
-        // observable about language detected
-        var textInputToDetect = Rx.Observable.fromEvent($('#TextToTranslate'), 'keyup')
-          .throttle(500) // wait to see if they're still typing
-          .do(function(){ $('#language').empty(); }) // side effect
-          .select(function(){ return $('#TextToTranslate').val(); }).distinctUntilChanged()
-          .flatMap(function(text){
-            return detect(text) // observable from ajax promise pushed to subscribers
+        function translate(text,from,to) {
+          var subject = new Rx.AsyncSubject();
+          var p = { 
+            text: text,
+            from: from,
+            to: to,
+            appId: 'Bearer ' + g_token
+          };
+          
+          $.ajax({
+              url: 'https://api.microsofttranslator.com/V2/Ajax.svc/Translate',
+              data: p,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'oncomplete',
+              success: function(data) {
+                subject.onNext(data);
+                subject.onCompleted();
+              },
+              error: subject.onError
           });
-
-        textInputToDetect.subscribe(
-          function(lang){
-            $('#language').append('Language detected: ' + lang + '<br/>');
-          },
-          function(err){
-            $('#language').append(err + '<br/>');
-          });
+          
+          return subject.asObservable();
+        };
 
         getToken();
-
         setInterval(getToken,1000*60*9);
-          
+        
+        $.fn.toObservable = function(eventType) {
+          return Rx.Observable.fromEvent(this,eventType);
+        }
+        
+        $(document).ready(function(){
+          $('#translateButton') // the button
+            .toObservable('click')
+            .subscribe(function(event){
+            
+              var textToTranslate = $('#textToTranslate').val();
+              var translator = detect(textToTranslate)
+                .do(function(detectedLang){
+                  $("#detectedLang").html("Detected: " + detectedLang);
+                })
+                .flatMap(function(detectedLang){
+                  return translate(textToTranslate,detectedLang,'nl');
+                });
+                
+                translator.subscribe(function(translatedText){
+                  $('#translatedText').html(translatedText);
+                });
+            })
+        });
+        
       })(jQuery);
       
     </script>
