@@ -7,11 +7,8 @@ Koans are beautiful and inspiring, but sometimes you just have to grab the shove
 This repo contains the undergoing revamp of the posts from 2010:
 
 1. http://codebetter.com/matthewpodwysocki/2010/02/16/introduction-to-the-reactive-extensions-to-javascript/
-
 1. http://codebetter.com/matthewpodwysocki/2010/02/23/introduction-to-the-reactive-extensions-for-javascript-creating-observables/
-
 1. http://codebetter.com/matthewpodwysocki/2010/02/27/introduction-to-the-reactive-extensions-for-javascript-creating-observers/
-
 1. http://codebetter.com/matthewpodwysocki/2010/03/05/introduction-to-the-reactive-extensions-for-javascript-jquery-integration/
 1. http://codebetter.com/matthewpodwysocki/2010/03/11/introduction-to-the-reactive-extensions-for-javascript-composing-callbacks/
 1. http://codebetter.com/matthewpodwysocki/2010/03/12/introduction-to-the-reactive-extensions-for-javascript-from-blocking-to-async/
