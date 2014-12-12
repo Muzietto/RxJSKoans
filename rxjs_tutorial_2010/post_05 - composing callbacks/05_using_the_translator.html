@@ -97,7 +97,7 @@
               });
           });
           
-        textInputToTranslate.subscribe(
+        textInputToTranslate.subscribe( // observable.subscribe(observer)
           function(x){
             $('#output').append(x.dest.dest + ' : ' + x.translation + '<br/>');
           },
@@ -114,7 +114,7 @@
             return detect(text) // observable from ajax promise pushed to subscribers
           });
 
-        textInputToDetect.subscribe(
+        textInputToDetect.subscribe( // observable.subscribe(observer)
           function(lang){
             $('#language').append('Language detected: ' + lang + '<br/>');
           },
@@ -123,9 +123,7 @@
           });
 
         getToken();
-
         setInterval(getToken,1000*60*9);
-          
       })(jQuery);
       
     </script>

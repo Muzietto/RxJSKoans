@@ -45,14 +45,14 @@
 
         function detect(text) {
           var subject = new Rx.AsyncSubject();
-          var p = { 
+          var payload = { 
             text: text,
             appId: 'Bearer ' + g_token
           };
           
           $.ajax({
               url: 'https://api.microsofttranslator.com/V2/Ajax.svc/Detect',
-              data: p,
+              data: payload,
               type: 'GET',
               dataType: 'jsonp',
               jsonp: 'oncomplete',
@@ -101,7 +101,7 @@
         $(document).ready(function(){
           $('#translateButton')
             .toObservable('click')
-            .subscribe(function(event){
+            .subscribe(function(event){ // observable.subscribe(observer)
             
               var textToTranslate = $('#textToTranslate').val();
               var translator = detect(textToTranslate)
@@ -112,7 +112,7 @@
                   return translate(textToTranslate,detectedLang,'nl');
                 });
                 
-                translator.subscribe(function(translatedText){
+                translator.subscribe(function(translatedText){ // observable.subscribe(observer)
                   $('#translatedText').html(translatedText);
                 });
             })
