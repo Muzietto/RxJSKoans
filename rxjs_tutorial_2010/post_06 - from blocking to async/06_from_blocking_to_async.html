@@ -103,24 +103,17 @@
         setInterval(getPromiseOfToken,1000*60*9);
 
         $(document).ready(function(){
-          start.then(function(){
-            getLanguageCodes().subscribe(
-              function(languageCodes){ // onNext
-                getLanguageNames('nl',JSON.stringify(languageCodes)).subscribe(
-                  function(languageNames){ // onNext
-                    var result = '<ul>';
-                    languageNames.forEach(function(curLang){
-                      result += '<li>'+curLang+'</li>';
-                    });
-                    result += '</ul>';
-                    $('#languages').html(result);
-                  },
-                  alert // onError
-                );
-              },
-              alert // onError
-            );
-          });
+          getLanguageCodesAsObservableSequenceOfStrings()
+            .zip(
+              getLanguageNamesAsObservableSequenceOfStrings("nl"), // right-hand collection
+              function(locale, language) { // worker function
+                 return { locale : locale, language : language };
+               }
+            )
+            .subscribe(function (result) {
+               $("#languageNames")
+                 .append("<li>"+result.locale+" - "+result.language+"</li>");
+            });        
         });
 
       })(jQuery);
