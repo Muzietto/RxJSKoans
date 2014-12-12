@@ -2,7 +2,7 @@ Learn Reactive Extensions for JavaScript
 Fork from the official repo.
 ----------------------------
 
-Koans are beautiful and inspiring, but sometimes you just have to try harder...
+Koans are beautiful and inspiring, but sometimes you just have to grab the shovel and dig harder in the dirt...
 
 This repo contains the undergoing revamp of the posts from 2010:
 * http://codebetter.com/matthewpodwysocki/2010/02/16/introduction-to-the-reactive-extensions-to-javascript/
