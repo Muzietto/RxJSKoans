@@ -66,7 +66,7 @@
         function getLanguageCodesAsObservableSequenceOfStrings() {
             return Rx.Observable.start(function() {
                 return getLanguageCodes().toObservable();
-            }).mergeObservable();
+            })/*.mergeObservable()*/;
         }
 
         function getLanguageNames(locale,languageCodes) {
@@ -93,9 +93,9 @@
           return subject.asObservable();
         };
 
-        function getLanguageNamesAsObservableSequenceOfStrings(locale) {
+        function getLanguageNamesAsObservableSequenceOfStrings(locale,languageCodes) {
           return Rx.Observable.start(function() {
-              return getLanguageNames(locale).toObservable();
+              return getLanguageNames(locale,languageCodes).toObservable();
           }).mergeObservable();
         }
 
@@ -103,17 +103,20 @@
         setInterval(getPromiseOfToken,1000*60*9);
 
         $(document).ready(function(){
-          getLanguageCodesAsObservableSequenceOfStrings()
-            .zip(
-              getLanguageNamesAsObservableSequenceOfStrings("nl"), // right-hand collection
-              function(locale, language) { // worker function
-                 return { locale : locale, language : language };
-               }
-            )
-            .subscribe(function (result) {
-               $("#languageNames")
-                 .append("<li>"+result.locale+" - "+result.language+"</li>");
-            });        
+          start.then(function(){
+            getLanguageCodesAsObservableSequenceOfStrings()       
+            /*
+              .zip(function(lc){
+                return getLanguageNamesAsObservableSequenceOfStrings("nl",lc)}, // right-hand collection
+                function(locale, language) { // worker function
+                   return { locale : locale, language : language };
+                 }
+              )*/
+              .subscribe(function (result) {
+                 $("#languageNames")
+                   .append("<li>"+result/*.locale+" - "+result.language*/+"</li>");
+              });
+          });
         });
 
       })(jQuery);
